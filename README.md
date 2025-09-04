@@ -1,31 +1,30 @@
-# Github Integration - Monday App Example
+# API Key Integration - Monday App
 
 ## Overview
 
-This repository contains the example Monday app called "Github Integration." The app demonstrates how to implement the following recipes:
+This repository contains a Monday app that demonstrates how to securely manage third-party API keys for automation workflows. The app provides a complete credentials management system that allows users to:
 
-1. When the **status** changes to **something**, it creates an **issue** in **this repository**.
-2. When an issue is created in **this repository**, it creates an **item**.
+1. **Store API Keys Securely**: Users can input and store their third-party service API keys
+2. **Manage Existing Keys**: View masked versions of existing keys and update or delete them
+3. **Use in Automations**: The stored API keys are automatically included in automation requests
 
 ## Features
 
 This app showcases how to use various Monday app functionalities, including:
 
-- Using Monday apps storage
-- Utilizing Monday logger
-- Managing Monday code environment using the Monday code environment manager
-- Deploying the app to Monday code
-- Implementing an integration recipe
-- Creating custom actions and triggers
-- Authenticating with JWT (JSON Web Tokens)
-- Querying Monday API using short-lived tokens for seamless authentication
-- Providing remote options for custom fields
-- Mapping items
-- Implementing OAuth process for 3rd party integrations
+- **Secure API Key Storage**: Using Monday.com's secure storage for sensitive credentials
+- **Credentials Management**: Complete CRUD operations for API key management
+- **Modern UI**: Clean, responsive interface for credential management
+- **Authentication**: JWT-based authentication for all endpoints
+- **Error Handling**: Comprehensive error handling and user feedback
+- **Security Best Practices**: API keys are masked when displayed and never logged
 
-## Extending the Sample Code
+## Key Components
 
-The code is designed to be easily understandable and extendable for any other API. We use JSDoc to document the main functions. In the code, you will find `@todo` tags to indicate areas that require adaptation for your specific API.
+- **API Key Management**: Store, retrieve, update, and delete third-party API keys
+- **User Interface**: Modern web interface for credential management
+- **Security**: All operations are authenticated and secure
+- **Integration Ready**: Designed to work seamlessly with Monday.com automations
 
 ## Installation
 
@@ -78,7 +77,6 @@ $ npm run deploy
 ```bash
 $ npm run logs
 ```
-
 
 # Using Monday Apps CLI
 

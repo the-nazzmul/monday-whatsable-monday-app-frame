@@ -5,13 +5,12 @@ const TAG = 'connection_model_service';
 
 /** @typedef {Object} Connection
  * @property {string} userId - The monday user ID
- * @property {string} mondayToken - The monday token of the user
- * @property {string} githubToken - The Github token of the user
+ * @property {string} apiKey - The third-party API key of the user
  */
 
 /**
  * A service for interacting with Connection objects.
- * A Connection defines a relation between a monday user and their Github & monday.com credentials.
+ * A Connection defines a relation between a monday user and their third-party API key credentials.
  *
  * @returns {ConnectionModelService} - An instance of the ConnectionModelService
  * @example
@@ -28,7 +27,7 @@ export class ConnectionModelService {
   }
 
   /**
-   * Retrieve a Github & monday.com connection based on a monday user ID.
+   * Retrieve a connection based on a monday user ID.
    * @param {string} userId - The monday user ID
    * @returns {Promise<Connection>} - The fetched connection
    */
@@ -42,21 +41,19 @@ export class ConnectionModelService {
   }
 
   /**
-   * Create a Connection record in the DB.
-   * A connection defines a relation between a monday user and their Github credentials.
+   * Create or update a Connection record in the DB.
+   * A connection defines a relation between a monday user and their third-party API key credentials.
    * @param {string} userId - The monday user ID
    * @param {Object} attributes - The attributes of the connection
-   * @param {string=} attributes.mondayToken - The monday token of the user
-   * @param {string=} attributes.githubToken - The Github token of the user
-   * @returns {Promise<Connection>} - The created connection
+   * @param {string=} attributes.apiKey - The API key for third-party service
+   * @returns {Promise<Connection>} - The created/updated connection
    */
   async upsertConnection(userId, attributes) {
-    const { mondayToken, githubToken } = attributes;
+    const { apiKey } = attributes;
     const connection = await this.getConnectionByUserId(userId);
     const newConnection = {
       ...connection,
-      ...(mondayToken && { mondayToken }),
-      ...(githubToken && { githubToken }),
+      ...(apiKey && { apiKey }),
       userId,
     };
     try {
@@ -66,7 +63,7 @@ export class ConnectionModelService {
         throw new Error('Failed to create connection');
       }
 
-      return { userId, mondayToken, githubToken };
+      return { userId, apiKey };
     } catch (err) {
       logger.error('Failed to create connection', TAG, { userId, error: err.message });
     }
@@ -88,17 +85,4 @@ export class ConnectionModelService {
       logger.error('Failed to delete connection', TAG, { userId, error: err.message });
     }
   }
-}
-
-export async function saveApiKey(userId, apiKey) {
-  return ConnectionStorage.set(userId, { apiKey });
-}
-
-export async function getApiKey(userId) {
-  const connection = await ConnectionStorage.get(userId);
-  return connection ? connection.apiKey : null;
-}
-
-export async function deleteApiKey(userId) {
-  return ConnectionStorage.del(userId);
 }

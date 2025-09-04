@@ -2,14 +2,247 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Authorize API Key</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Key Configuration</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #555;
+      }
+      input[type='password'],
+      input[type='text'] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e1e5e9;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+      }
+      input[type='password']:focus,
+      input[type='text']:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+      .btn {
+        background-color: #007bff;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.3s;
+        width: 100%;
+      }
+      .btn:hover {
+        background-color: #0056b3;
+      }
+      .btn-secondary {
+        background-color: #6c757d;
+        margin-top: 10px;
+      }
+      .btn-secondary:hover {
+        background-color: #545b62;
+      }
+      .btn-danger {
+        background-color: #dc3545;
+      }
+      .btn-danger:hover {
+        background-color: #c82333;
+      }
+      .existing-key {
+        background-color: #e8f5e8;
+        border: 1px solid #c3e6c3;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+      }
+      .key-display {
+        font-family: monospace;
+        background-color: #f8f9fa;
+        padding: 8px;
+        border-radius: 4px;
+        margin: 10px 0;
+        word-break: break-all;
+      }
+      .status {
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .status.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .status.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .help-text {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Enter your API Key</h1>
-    <form action="/save-api-key" method="post">
-      <label for="apiKey">API Key:</label>
-      <input type="password" id="apiKey" name="apiKey" required />
-      <button type="submit">Save Key</button>
-    </form>
+    <div class="container">
+      <h1>🔑 API Key Configuration</h1>
+
+      <div id="statusMessage" class="status" style="display: none"></div>
+
+      <div id="existingKeySection" class="existing-key" style="display: none">
+        <h3>✅ Current API Key</h3>
+        <p>You already have an API key configured:</p>
+        <div id="maskedKey" class="key-display"></div>
+        <p class="help-text">This key is securely stored and will be used for your automations.</p>
+        <button type="button" class="btn btn-danger" onclick="deleteApiKey()">Delete Current Key</button>
+      </div>
+
+      <div id="newKeySection">
+        <h3>🔧 Configure New API Key</h3>
+        <p>Enter your third-party service API key below:</p>
+
+        <form id="apiKeyForm" action="/save-api-key" method="post">
+          <div class="form-group">
+            <label for="apiKey">API Key:</label>
+            <input type="password" id="apiKey" name="apiKey" required placeholder="Enter your API key here..." />
+            <div class="help-text">This key will be securely stored and used for your automations.</div>
+          </div>
+          <button type="submit" class="btn">Save API Key</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Check if there's an existing API key on page load
+      document.addEventListener('DOMContentLoaded', function () {
+        checkExistingApiKey();
+      });
+
+      async function checkExistingApiKey() {
+        try {
+          const response = await fetch('/get-api-key');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.connected && data.maskedKey) {
+              showExistingKey(data.maskedKey);
+            }
+          }
+        } catch (error) {
+          console.log('No existing API key found');
+        }
+      }
+
+      function showExistingKey(maskedKey) {
+        document.getElementById('maskedKey').textContent = maskedKey;
+        document.getElementById('existingKeySection').style.display = 'block';
+        document.getElementById('newKeySection').style.display = 'none';
+      }
+
+      function showNewKeySection() {
+        document.getElementById('existingKeySection').style.display = 'none';
+        document.getElementById('newKeySection').style.display = 'block';
+      }
+
+      async function deleteApiKey() {
+        if (!confirm('Are you sure you want to delete your current API key? This will disable your automations.')) {
+          return;
+        }
+
+        try {
+          const response = await fetch('/delete-api-key', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            showStatus('API key deleted successfully!', 'success');
+            showNewKeySection();
+          } else {
+            showStatus('Failed to delete API key. Please try again.', 'error');
+          }
+        } catch (error) {
+          showStatus('An error occurred while deleting the API key.', 'error');
+        }
+      }
+
+      function showStatus(message, type) {
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.textContent = message;
+        statusDiv.className = `status ${type}`;
+        statusDiv.style.display = 'block';
+
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 5000);
+      }
+
+      // Handle form submission
+      document.getElementById('apiKeyForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const apiKey = formData.get('apiKey');
+
+        if (!apiKey || apiKey.trim() === '') {
+          showStatus('Please enter a valid API key.', 'error');
+          return;
+        }
+
+        // Submit the form
+        fetch('/save-api-key', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams(formData),
+        })
+          .then((response) => {
+            if (response.ok) {
+              showStatus('API key saved successfully!', 'success');
+              setTimeout(() => {
+                window.close();
+              }, 2000);
+            } else {
+              showStatus('Failed to save API key. Please try again.', 'error');
+            }
+          })
+          .catch((error) => {
+            showStatus('An error occurred while saving the API key.', 'error');
+          });
+      });
+    </script>
   </body>
 </html>
